@@ -41,9 +41,16 @@ jobs:
         run: |
           echo "Cache hit: ${{ steps.nuget-cache.outputs.cache-hit }}"
 
-      - name: Restore packages
+      - name: Restore packages (offline if cached)
         working-directory: src/App
-        run: dotnet restore
+        run: |
+          if [ "${{ steps.nuget-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "Cache hit — restoring from local cache only (no network)"
+            dotnet restore --source ~/.nuget/packages
+          else
+            echo "Cache miss — restoring from NuGet (network)"
+            dotnet restore
+          fi
 
       - name: Build
         working-directory: src/App
