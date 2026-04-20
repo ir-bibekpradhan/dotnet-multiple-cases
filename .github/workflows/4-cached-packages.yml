@@ -23,27 +23,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET (with built-in NuGet cache)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-
-      - name: Cache NuGet packages
-        id: nuget-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('src/App/App.csproj') }}
-          restore-keys: |
-            nuget-${{ runner.os }}-
-
-      - name: Report cache status
-        run: |
-          if [ "${{ steps.nuget-cache.outputs.cache-hit }}" == "true" ]; then
-            echo "CACHE HIT — proxy should see 0 package downloads"
-          else
-            echo "CACHE MISS — proxy should see all 7 package downloads"
-          fi
+          cache: true
+          cache-dependency-path: src/App/App.csproj
 
       - name: Restore packages
         working-directory: src/App
