@@ -45,15 +45,8 @@ jobs:
         working-directory: src/App
         run: |
           if [ "${{ steps.nuget-cache.outputs.cache-hit }}" == "true" ]; then
-            echo "Cache hit — disabling all remote sources for offline restore"
-            cat > /tmp/nuget-offline.config << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <clear />
-            </packageSources>
-          </configuration>
-          EOF
+            echo "Cache hit — offline restore, no network"
+            printf '<?xml version="1.0" encoding="utf-8"?>\n<configuration>\n  <packageSources>\n    <clear />\n  </packageSources>\n</configuration>\n' > /tmp/nuget-offline.config
             dotnet restore --configfile /tmp/nuget-offline.config
           else
             echo "Cache miss — restoring from NuGet (network)"
