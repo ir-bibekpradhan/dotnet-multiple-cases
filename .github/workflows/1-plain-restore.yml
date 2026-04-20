@@ -1,0 +1,35 @@
+# Scenario 1: Plain dotnet restore (no Docker)
+# Tests proxy intercepts NuGet package downloads directly on the runner
+# Expected: proxy logs all 7 packages being fetched from nuget.org
+
+name: "Scenario 1 - Plain dotnet restore"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+
+    env:
+      # Point NuGet traffic through your proxy
+      HTTP_PROXY: ${{ secrets.PROXY_URL }}
+      HTTPS_PROXY: ${{ secrets.PROXY_URL }}
+      NO_PROXY: localhost,127.0.0.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore packages (proxy intercepts here)
+        working-directory: src/App
+        run: dotnet restore
+
+      - name: Build
+        working-directory: src/App
+        run: dotnet build -c Release --no-restore

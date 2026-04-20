@@ -1,0 +1,33 @@
+# Scenario 2: Single-stage Docker build
+# Tests proxy intercepts NuGet downloads happening INSIDE the Docker build
+# Docker build args pass proxy settings into the container build environment
+# Expected: proxy logs package downloads from within Docker RUN steps
+
+name: "Scenario 2 - Docker build (single stage)"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (proxy passed as build-arg)
+        run: |
+          docker build \
+            --build-arg HTTP_PROXY=${{ secrets.PROXY_URL }} \
+            --build-arg HTTPS_PROXY=${{ secrets.PROXY_URL }} \
+            --build-arg NO_PROXY=localhost,127.0.0.1 \
+            -f Dockerfile \
+            -t dotnet-proxy-test:single \
+            .
+
+      - name: Run container
+        run: docker run --rm dotnet-proxy-test:single

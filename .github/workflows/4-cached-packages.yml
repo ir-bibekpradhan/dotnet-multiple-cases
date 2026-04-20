@@ -1,0 +1,52 @@
+# Scenario 4: Cached packages (GitHub Actions cache)
+# First run: cache miss — proxy sees all NuGet downloads
+# Second run: cache hit — proxy should see NO downloads (packages served from cache)
+# Expected: validates proxy correctly reports 0 packages on cache hit runs
+
+name: "Scenario 4 - Cached packages"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  restore-with-cache:
+    runs-on: ubuntu-latest
+
+    env:
+      HTTP_PROXY: ${{ secrets.PROXY_URL }}
+      HTTPS_PROXY: ${{ secrets.PROXY_URL }}
+      NO_PROXY: localhost,127.0.0.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Cache NuGet packages
+        id: nuget-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('src/App/App.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Report cache status
+        run: |
+          if [ "${{ steps.nuget-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "CACHE HIT — proxy should see 0 package downloads"
+          else
+            echo "CACHE MISS — proxy should see all 7 package downloads"
+          fi
+
+      - name: Restore packages
+        working-directory: src/App
+        run: dotnet restore
+
+      - name: Build
+        working-directory: src/App
+        run: dotnet build -c Release --no-restore

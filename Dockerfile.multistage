@@ -1,0 +1,27 @@
+# Multi-stage Dockerfile
+# Stage 1 (builder): SDK image — proxy sees NuGet package downloads here
+# Stage 2 (runtime): ASP.NET runtime only — no package downloads, tests proxy handles COPY --from
+
+# ---- Build stage ----
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
+
+WORKDIR /build
+
+# Restore packages separately so Docker can cache this layer
+# Proxy intercepts NuGet traffic at this step
+COPY src/App/App.csproj ./
+RUN dotnet restore
+
+# Copy remaining source and publish
+COPY src/App/ ./
+RUN dotnet publish -c Release -o /out --no-restore
+
+# ---- Runtime stage ----
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+WORKDIR /app
+
+# Copy published output from builder — no network calls, proxy sees nothing here
+COPY --from=builder /out ./
+
+CMD ["dotnet", "App.dll"]
