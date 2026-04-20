@@ -28,30 +28,23 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Cache NuGet packages
+      - name: Cache NuGet packages + restore output
         id: nuget-cache
         uses: actions/cache@v4
         with:
-          path: ~/.nuget/packages
+          path: |
+            ~/.nuget/packages
+            src/App/obj
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/App.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
 
       - name: Cache status
         run: |
           echo "Cache hit: ${{ steps.nuget-cache.outputs.cache-hit }}"
 
-      - name: Restore packages (offline if cached)
+      - name: Restore packages (skip if cached)
+        if: steps.nuget-cache.outputs.cache-hit != 'true'
         working-directory: src/App
-        run: |
-          if [ "${{ steps.nuget-cache.outputs.cache-hit }}" == "true" ]; then
-            echo "Cache hit — offline restore, no network"
-            printf '<?xml version="1.0" encoding="utf-8"?>\n<configuration>\n  <packageSources>\n    <clear />\n  </packageSources>\n</configuration>\n' > /tmp/nuget-offline.config
-            dotnet restore --configfile /tmp/nuget-offline.config
-          else
-            echo "Cache miss — restoring from NuGet (network)"
-            dotnet restore
-          fi
+        run: dotnet restore
 
       - name: Build
         working-directory: src/App
