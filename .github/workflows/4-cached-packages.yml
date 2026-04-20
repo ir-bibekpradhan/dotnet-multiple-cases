@@ -23,12 +23,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET (with built-in NuGet cache)
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-          cache: true
-          cache-dependency-path: src/App/App.csproj
+
+      - name: Cache NuGet packages
+        id: nuget-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/App.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Cache status
+        run: |
+          echo "Cache hit: ${{ steps.nuget-cache.outputs.cache-hit }}"
 
       - name: Restore packages
         working-directory: src/App
