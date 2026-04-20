@@ -11,12 +11,6 @@ jobs:
   restore:
     runs-on: ubuntu-latest
 
-    env:
-      # Point NuGet traffic through your proxy
-      HTTP_PROXY: ${{ secrets.PROXY_URL }}
-      HTTPS_PROXY: ${{ secrets.PROXY_URL }}
-      NO_PROXY: localhost,127.0.0.1
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4

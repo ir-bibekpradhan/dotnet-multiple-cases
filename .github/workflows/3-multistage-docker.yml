@@ -19,12 +19,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build multi-stage image (proxy only active in builder stage)
+      - name: Build multi-stage image
         run: |
           docker build \
-            --build-arg HTTP_PROXY=${{ secrets.PROXY_URL }} \
-            --build-arg HTTPS_PROXY=${{ secrets.PROXY_URL }} \
-            --build-arg NO_PROXY=localhost,127.0.0.1 \
             --target runtime \
             -f Dockerfile.multistage \
             -t dotnet-proxy-test:multi \
