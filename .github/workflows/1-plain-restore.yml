@@ -14,8 +14,9 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
+          api_url: "https://app.dev.invisirisk.com"
           app_token: ${{secrets.IR_API_KEY}}
           workdir: src/App
       # ============= InvisiRisk Setup End =============
@@ -34,10 +35,3 @@ jobs:
       - name: Build
         working-directory: src/App
         run: dotnet build -c Release --no-restore
-      # ============= InvisiRisk Cleanup =============
-      - name: Cleanup PSE
-        if: always()
-        uses: invisirisk/pse-action@latest
-        with:
-          cleanup: "true"
-      # ============= InvisiRisk Cleanup End =============
