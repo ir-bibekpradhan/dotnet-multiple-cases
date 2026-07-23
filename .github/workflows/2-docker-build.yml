@@ -38,10 +38,3 @@ jobs:
 
       - name: Run container
         run: docker run --rm dotnet-proxy-test:single
-      # ============= InvisiRisk Cleanup =============
-      - name: Cleanup PSE
-        if: always()
-        uses: invisirisk/pse-action@develop
-        with:
-          cleanup: "true"
-      # ============= InvisiRisk Cleanup End =============
